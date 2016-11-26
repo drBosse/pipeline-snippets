@@ -57,7 +57,7 @@ stage('init & prep pip'){
         bat 'git log --format=%d -n1 > GIT_LOG'
       }
       def git_branch = readFile('GIT_LOG').replace(')','').split(',')[-1]
-      currentBuild.displayName = git_branch
+      currentBuild.description = git_branch
     }
     // Stash the workspace so we can use exact the same content on multiple nodes
     stash includes: 'cut/', name: 'cut'
