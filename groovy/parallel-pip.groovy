@@ -3,9 +3,10 @@ def builds = ['windows', 'linux', 'bsd', 'unit']
 def branches = [:]
 
 for(def i=0; i<builds.size(); i++) {
-  // ToDo: make if a function
+  // A quirk for pipelines
   def index=i
   def command
+  // ToDo: make it a function
   switch(builds[index]) {
     case 'windows':
       command = 'echo msbuild'
@@ -23,9 +24,12 @@ for(def i=0; i<builds.size(); i++) {
       // should really throw an error
     break
   }
+  // Actions to be used in parallel stage call below
   branches[builds[index]] = {
     node(builds[index]){
+      // Unpack the workspace 
         unstash 'cut'
+        // Could use try/catch here for error handling
         dir('cut'){
           if(isUnix()){
             sh "${command}"
@@ -37,7 +41,7 @@ for(def i=0; i<builds.size(); i++) {
   }
 }
 
-stage('init'){
+stage('init & prep pip'){
   node('git'){
     checkout([$class: 'GitSCM',
       branches: [[name: 'master']],
@@ -45,6 +49,7 @@ stage('init'){
       extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'cut']],
       submoduleCfg: [],
       userRemoteConfigs: [[credentialsId: 'jenkins', url: 'git@github.com:drBosse/pipeline-snippets.git']]])
+    // Stash the workspace so we can use exact the same content on multiple nodes
     stash includes: 'cut/', name: 'cut'
   }
 }
