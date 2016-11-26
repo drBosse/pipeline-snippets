@@ -4,8 +4,9 @@ def branches = [:]
 
 for(def i=0; i<builds.size(); i++) {
   // ToDo: make if a function
+  def index=i
   def command
-  switch(builds[i]) {
+  switch(builds[index]) {
     case 'windows':
       command = 'echo msbuild'
       break
@@ -22,14 +23,14 @@ for(def i=0; i<builds.size(); i++) {
       // should really throw an error
     break
   }
-  branches[builds[i]] = {
-    node(builds[i]){
+  branches[builds[index]] = {
+    node(builds[index]){
         unstash 'cut'
         dir('cut'){
           if(isUnix()){
-            sh 'command'
+            sh "${command}"
           }else {
-            bat 'command'
+            bat "${command}"
           }
         }
     }
@@ -39,14 +40,26 @@ for(def i=0; i<builds.size(); i++) {
 stage('init'){
   node('git'){
     checkout([$class: 'GitSCM',
-      branches: [[name: 'branch']],
+      branches: [[name: 'master']],
       doGenerateSubmoduleConfigurations: false,
       extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'cut']],
       submoduleCfg: [],
-      userRemoteConfigs: [[credentialsId: 'user', url: 'ssh://git']]])
+      userRemoteConfigs: [[credentialsId: 'jenkins', url: 'git@github.com:drBosse/pipeline-snippets.git']]])
     stash includes: 'cut/', name: 'cut'
   }
 }
 stage('builds'){
   parallel branches
+}
+
+stage('cleanup'){
+    node('git'){
+        dir('cut'){
+            if(isUnix()){
+                sh 'git log --oneline --decorate --graph -n5'
+            } else {
+                bat 'git log --oneline --decorate --graph -n5'
+            }
+        }
+    }
 }
