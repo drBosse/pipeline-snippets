@@ -27,7 +27,7 @@ for(def i=0; i<builds.size(); i++) {
   // Actions to be used in parallel stage call below
   branches[builds[index]] = {
     node(builds[index]){
-      // Unpack the workspace 
+      // Unpack the workspace
         unstash 'cut'
         // Could use try/catch here for error handling
         dir('cut'){
@@ -49,6 +49,16 @@ stage('init & prep pip'){
       extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'cut']],
       submoduleCfg: [],
       userRemoteConfigs: [[credentialsId: 'jenkins', url: 'git@github.com:drBosse/pipeline-snippets.git']]])
+    // determine what branch triggered the jobdsl-gradle
+    dir('cut'){
+      if(isUnix()){
+        sh 'git log --format=%d -n1 > GIT_LOG'
+      } else {
+        bat 'git log --format=%d -n1 > GIT_LOG'
+      }
+      def git_branch = readFile('GIT_LOG').replace(')','').split(',')[-1]
+      currentBuild.description = git_branch
+    }
     // Stash the workspace so we can use exact the same content on multiple nodes
     stash includes: 'cut/', name: 'cut'
   }
