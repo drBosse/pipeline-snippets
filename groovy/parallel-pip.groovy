@@ -57,7 +57,7 @@ stage('init & prep pip'){
       } else {
         bat 'git log --format=%d -n1 > GIT_LOG'
       }
-      git_branch = readFile('GIT_LOG').replace(')','').split(',')[-1]
+      git_branch = readFile('GIT_LOG').replace(')','').split(',')[-1].trim()
       currentBuild.description = git_branch
       if(isUnix()){
         sh 'git checkout origin/master'
@@ -82,11 +82,15 @@ stage('commit & cleanup'){
             if(isUnix()){
                 sh 'git log --oneline --decorate --graph -n5'
                 sh 'git push origin HEAD:refs/heads/master'
-                sh "git push origin :refs/heads/${git_branch.replace('origin/', '')}"
+                if(git_branch != 'origin/master'){
+                  sh "git push origin :refs/heads/${git_branch.replace('origin/', '')}"
+                }
             } else {
                 bat 'git log --oneline --decorate --graph -n5'
                 bat 'git push origin HEAD:refs/heads/master'
-                bat "git push origin :refs/heads/${git_branch.replace('origin/', '')}"
+                if(git_branch != 'origin/master'){
+                  bat "git push origin :refs/heads/${git_branch.replace('origin/', '')}"
+                }
             }
         }
     }
