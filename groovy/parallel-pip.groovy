@@ -58,6 +58,13 @@ stage('init & prep pip'){
       }
       def git_branch = readFile('GIT_LOG').replace(')','').split(',')[-1]
       currentBuild.description = git_branch
+      if(isUnix()){
+        sh 'git checkout origin/master'
+        sh "git merge ${git_branch}"
+      } else {
+        bat 'git checkout origin/master'
+        bat "git merge ${git_branch}"
+      }
     }
     // Stash the workspace so we can use exact the same content on multiple nodes
     stash includes: 'cut/', name: 'cut'
@@ -67,13 +74,17 @@ stage('builds'){
   parallel branches
 }
 
-stage('cleanup'){
+stage('commit & cleanup'){
     node('git'){
         dir('cut'){
             if(isUnix()){
                 sh 'git log --oneline --decorate --graph -n5'
+                sh 'git push origin master'
+                sh "git push origin :refs/heads/${git_branch.replace('origin/', '')}"
             } else {
                 bat 'git log --oneline --decorate --graph -n5'
+                bat 'git push origin master'
+                bat "git push origin :refs/heads/${git_branch.replace('origin/', '')}"
             }
         }
     }
