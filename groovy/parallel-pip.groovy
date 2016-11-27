@@ -57,7 +57,7 @@ stage('init & prep pip'){
       } else {
         bat 'git log --format=%d -n1 > GIT_LOG'
       }
-      def git_branch = readFile('GIT_LOG').replace(')','').split(',')[-1]
+      git_branch = readFile('GIT_LOG').replace(')','').split(',')[-1]
       currentBuild.description = git_branch
       if(isUnix()){
         sh 'git checkout origin/master'
