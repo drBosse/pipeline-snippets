@@ -71,6 +71,7 @@ stage('init & prep pip'){
     stash includes: 'cut/', name: 'cut'
   }
 }
+
 stage('builds'){
   parallel branches
 }
@@ -80,11 +81,11 @@ stage('commit & cleanup'){
         dir('cut'){
             if(isUnix()){
                 sh 'git log --oneline --decorate --graph -n5'
-                sh 'git push origin master'
+                sh 'git push origin HEAD:refs/heads/master'
                 sh "git push origin :refs/heads/${git_branch.replace('origin/', '')}"
             } else {
                 bat 'git log --oneline --decorate --graph -n5'
-                bat 'git push origin master'
+                bat 'git push origin HEAD:refs/heads/master'
                 bat "git push origin :refs/heads/${git_branch.replace('origin/', '')}"
             }
         }
