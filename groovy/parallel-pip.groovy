@@ -44,7 +44,7 @@ for(def i=0; i<builds.size(); i++) {
 stage('init & prep pip'){
   node('git'){
     checkout([$class: 'GitSCM',
-      branches: [[name: 'master']],
+      branches: [[name: '*/ready/**']],
       doGenerateSubmoduleConfigurations: false,
       extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'cut']],
       submoduleCfg: [],
@@ -52,6 +52,7 @@ stage('init & prep pip'){
     // determine what branch triggered the jobdsl-gradle
     dir('cut'){
       if(isUnix()){
+        sh 'git log --decorate --graph --oneline'
         sh 'git log --format=%d -n1 > GIT_LOG'
       } else {
         bat 'git log --format=%d -n1 > GIT_LOG'
